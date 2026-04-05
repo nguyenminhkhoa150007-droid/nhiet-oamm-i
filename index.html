@@ -2,15 +2,13 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IoT Dashboard</title>
-
-<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
 <style>
 body {
-    margin: 0;
     font-family: Arial;
-    background: #dcdcdc;
+    background: transparent;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -19,42 +17,23 @@ body {
 
 .container {
     display: flex;
-    gap: 40px;
+    gap: 20px;
 }
 
 .card {
-    width: 280px;
-    height: 180px;
-    background: #e6e6e6;
-    border-radius: 20px;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
-    padding: 20px;
+    width: 200px;
+    height: 130px;
+    background: #f5f5f5;
+    border-radius: 15px;
+    padding: 15px;
     text-align: center;
-    transition: 0.3s;
 }
 
-.card:hover {
-    transform: translateY(-5px);
-}
+.temp { border-top: 5px solid red; }
+.humi { border-top: 5px solid blue; }
 
-.temp {
-    border-top: 6px solid #ff4d5a;
-}
-
-.humi {
-    border-top: 6px solid #2d89ef;
-}
-
-.title {
-    font-size: 20px;
-    color: #444;
-}
-
-.value {
-    font-size: 42px;
-    margin-top: 30px;
-    font-weight: bold;
-}
+.title { font-size: 14px; }
+.value { font-size: 28px; margin-top: 20px; }
 </style>
 </head>
 
@@ -76,41 +55,35 @@ body {
 // 🔥 TOKEN của bạn
 const TOKEN = "539c1dc1-70ed-43fc-b028-37e6af097ac7";
 
-// MQTT WebSocket E-Ra
-const client = mqtt.connect("wss://mqtt.eoh.io:8084/mqtt", {
-    username: TOKEN,
-    password: ""
-});
+// API E-Ra
+const API = `https://api.eoh.io/v1/device/latest?token=${TOKEN}`;
 
-// Topic
-const topic = `era/${TOKEN}/data`;
-
-client.on("connect", () => {
-    console.log("✅ Connected to E-Ra");
-    client.subscribe(topic);
-});
-
-// Nhận dữ liệu realtime
-client.on("message", (topic, message) => {
+// Lấy dữ liệu mỗi 3 giây
+async function getData() {
     try {
-        const data = JSON.parse(message.toString());
+        const res = await fetch(API);
+        const data = await res.json();
 
         console.log(data);
 
         if (data.V1 !== undefined) {
             document.getElementById("temp").innerHTML =
-                data.V1.toFixed(1) + " °C";
+                data.V1 + " °C";
         }
 
         if (data.V2 !== undefined) {
             document.getElementById("humi").innerHTML =
-                data.V2.toFixed(1) + " %";
+                data.V2 + " %";
         }
 
     } catch (e) {
-        console.log("Lỗi:", message.toString());
+        console.log("Lỗi API:", e);
     }
-});
+}
+
+// chạy liên tục
+setInterval(getData, 3000);
+getData();
 </script>
 
 </body>
