@@ -4,6 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.6/src/index.js"></script>
+
 <style>
 body {
     font-family: Arial;
@@ -13,10 +15,12 @@ body {
     align-items: center;
     height: 100vh;
 }
+
 .container {
     display: flex;
     gap: 20px;
 }
+
 .card {
     width: 200px;
     height: 130px;
@@ -25,10 +29,15 @@ body {
     padding: 15px;
     text-align: center;
 }
+
 .temp { border-top: 5px solid red; }
 .humi { border-top: 5px solid blue; }
 
-.value { font-size: 28px; margin-top: 20px; }
+.value {
+    font-size: 28px;
+    margin-top: 20px;
+    font-weight: bold;
+}
 </style>
 </head>
 
@@ -47,26 +56,31 @@ body {
 </div>
 
 <script>
-// 🔥 NHẬN DATA TỪ E-Ra iframe
-window.addEventListener("message", (event) => {
-    try {
-        const data = event.data;
+// 🔥 KHỞI TẠO ERA WIDGET
+eraWidget.init({
 
-        console.log("DATA:", data);
+    onConfiguration: (config) => {
+        console.log("Config:", config);
+    },
 
-        if (data.V1 !== undefined) {
+    onValues: (values) => {
+        console.log("Values:", values);
+
+        // 👉 LẤY GIÁ TRỊ
+        // ID 1 = V1
+        // ID 2 = V2
+
+        if (values[1]) {
             document.getElementById("temp").innerHTML =
-                data.V1 + " °C";
+                values[1].value + " °C";
         }
 
-        if (data.V2 !== undefined) {
+        if (values[2]) {
             document.getElementById("humi").innerHTML =
-                data.V2 + " %";
+                values[2].value + " %";
         }
-
-    } catch (e) {
-        console.log("Lỗi:", e);
     }
+
 });
 </script>
 
