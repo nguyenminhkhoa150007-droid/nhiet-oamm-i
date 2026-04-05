@@ -90,14 +90,13 @@
             const data = event.data;
             if (!data || typeof data !== 'object') return;
 
-            // 1. Nhận cấu hình (Configuration)
-            if (data.type === 'configuration') {
+            // 1. Nhận cấu hình (Sử dụng đúng từ khóa 'message' của E-Ra)
+            if (data.message === 'configuration') {
                 eraConfig = data.data;
-                console.log("Cấu hình từ E-Ra:", eraConfig);
             }
 
-            // 2. Nhận dữ liệu thời gian thực (Values)
-            if (data.type === 'values' && eraConfig && eraConfig.realtime_configs) {
+            // 2. Nhận dữ liệu thời gian thực
+            if (data.message === 'values' && eraConfig && eraConfig.realtime_configs) {
                 const values = data.data;
 
                 // Cấu hình trên web E-Ra: Dòng 1 (Nhiệt độ) -> Vị trí 0
@@ -117,10 +116,10 @@
             }
         });
 
-        // Tự động gửi tín hiệu Ready cho đến khi lấy được cấu hình
+        // Tự động gửi tín hiệu Ready với đúng từ khóa 'message' thay vì 'type'
         const readyInterval = setInterval(() => {
             if (!eraConfig) {
-                window.parent.postMessage({ type: 'ready' }, '*');
+                window.parent.postMessage({ message: 'ready' }, '*');
             } else {
                 clearInterval(readyInterval);
             }
