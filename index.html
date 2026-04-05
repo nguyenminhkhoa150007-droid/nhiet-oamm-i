@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>IoT Dashboard</title>
-
-<!-- ✅ Script chuẩn (fix 502) -->
 <script src="https://unpkg.com/@eohjsc/era-widget@latest/src/index.js"></script>
 
 <style>
@@ -32,16 +29,10 @@ body {
     border-radius: 15px;
     padding: 15px;
     text-align: center;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
 }
 
 .temp { border-top: 5px solid red; }
 .humi { border-top: 5px solid blue; }
-
-.title {
-    font-size: 14px;
-    color: #555;
-}
 
 .value {
     font-size: 28px;
@@ -55,39 +46,36 @@ body {
 
 <div class="container">
     <div class="card temp">
-        <div class="title">NHIỆT ĐỘ</div>
+        <div>NHIỆT ĐỘ</div>
         <div class="value" id="temp">-- °C</div>
     </div>
 
     <div class="card humi">
-        <div class="title">ĐỘ ẨM</div>
+        <div>ĐỘ ẨM</div>
         <div class="value" id="humi">-- %</div>
     </div>
 </div>
 
 <script>
-// 🔥 Đợi load xong tránh lỗi 502
 window.onload = function () {
 
     eraWidget.init({
 
-        onConfiguration: function(config) {
-            console.log("Config:", config);
-        },
-
         onValues: function(values) {
             console.log("Values:", values);
 
-            // 👉 ID 1 = V1
-            if (values[1] && values[1].value !== undefined) {
-                document.getElementById("temp").innerHTML =
-                    parseInt(values[1].value) + " °C";
-            }
+            // 🔥 LẤY KEY ĐỘNG
+            const keys = Object.keys(values);
 
-            // 👉 ID 2 = V2
-            if (values[2] && values[2].value !== undefined) {
+            if (keys.length >= 2) {
+                const tempValue = values[keys[0]].value;
+                const humiValue = values[keys[1]].value;
+
+                document.getElementById("temp").innerHTML =
+                    parseInt(tempValue) + " °C";
+
                 document.getElementById("humi").innerHTML =
-                    parseInt(values[2].value) + " %";
+                    parseInt(humiValue) + " %";
             }
         }
 
