@@ -1,130 +1,117 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Theo dõi Nhiệt độ & Độ ẩm</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        
-        body { 
-            font-family: Arial, sans-serif; 
-            background-color: #f4f7f6; 
-            display: flex; 
-            flex-direction: column;
-            justify-content: center; 
-            align-items: center; 
-            height: 100vh; 
-        }
+<meta charset="UTF-8">
+<title>IoT Dashboard</title>
 
-        .dashboard {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 20px;
-        }
+<script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
 
-        .card {
-            background-color: #fff;
-            padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 200px;
-        }
+<style>
+body {
+    margin: 0;
+    font-family: Arial;
+    background: #dcdcdc;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
 
-        .card-temp { border-top: 5px solid #ff4757; }
-        .card-hum { border-top: 5px solid #1e90ff; }
+.container {
+    display: flex;
+    gap: 40px;
+}
 
-        .title {
-            font-size: 18px;
-            color: #333;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
+.card {
+    width: 280px;
+    height: 180px;
+    background: #e6e6e6;
+    border-radius: 20px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+    padding: 20px;
+    text-align: center;
+    transition: 0.3s;
+}
 
-        .value {
-            font-size: 40px;
-            font-weight: bold;
-        }
+.card:hover {
+    transform: translateY(-5px);
+}
 
-        .val-temp { color: #ff4757; }
-        .val-hum { color: #1e90ff; }
+.temp {
+    border-top: 6px solid #ff4d5a;
+}
 
-        .unit {
-            font-size: 20px;
-            color: #666;
-        }
+.humi {
+    border-top: 6px solid #2d89ef;
+}
 
-        @media (max-width: 500px) {
-            .dashboard { flex-direction: column; }
-            .card { width: 90%; }
-        }
-    </style>
+.title {
+    font-size: 20px;
+    color: #444;
+}
+
+.value {
+    font-size: 42px;
+    margin-top: 30px;
+    font-weight: bold;
+}
+</style>
 </head>
+
 <body>
 
-    <div class="dashboard">
-        <!-- Thẻ Nhiệt độ -->
-        <div class="card card-temp">
-            <div class="title">Nhiệt độ</div>
-            <div class="value val-temp">
-                <span id="tempValue">--</span><span class="unit">°C</span>
-            </div>
-        </div>
-
-        <!-- Thẻ Độ ẩm -->
-        <div class="card card-hum">
-            <div class="title">Độ ẩm</div>
-            <div class="value val-hum">
-                <span id="humValue">--</span><span class="unit">%</span>
-            </div>
-        </div>
+<div class="container">
+    <div class="card temp">
+        <div class="title">NHIỆT ĐỘ</div>
+        <div class="value" id="temp">-- °C</div>
     </div>
 
-    <!-- LOGIC CHUẨN TỪ REPO GITHUB EOH-JSC/ERA-WIDGET-DASHBOARD -->
-    <script>
-        let eraConfig = null;
+    <div class="card humi">
+        <div class="title">ĐỘ ẨM</div>
+        <div class="value" id="humi">-- %</div>
+    </div>
+</div>
 
-        // Bắt sự kiện trực tiếp từ iFrame
-        window.addEventListener('message', function(event) {
-            const data = event.data;
-            if (!data || typeof data !== 'object') return;
+<script>
+// 🔥 TOKEN của bạn
+const TOKEN = "539c1dc1-70ed-43fc-b028-37e6af097ac7";
 
-            // 1. Nhận cấu hình (Sử dụng đúng từ khóa 'message' của E-Ra)
-            if (data.message === 'configuration') {
-                eraConfig = data.data;
-            }
+// MQTT WebSocket E-Ra
+const client = mqtt.connect("wss://mqtt.eoh.io:8084/mqtt", {
+    username: TOKEN,
+    password: ""
+});
 
-            // 2. Nhận dữ liệu thời gian thực
-            if (data.message === 'values' && eraConfig && eraConfig.realtime_configs) {
-                const values = data.data;
+// Topic
+const topic = `era/${TOKEN}/data`;
 
-                // Cấu hình trên web E-Ra: Dòng 1 (Nhiệt độ) -> Vị trí 0
-                const tempConfig = eraConfig.realtime_configs[0];
-                // Cấu hình trên web E-Ra: Dòng 2 (Độ ẩm) -> Vị trí 1
-                const humConfig = eraConfig.realtime_configs[1];
+client.on("connect", () => {
+    console.log("✅ Connected to E-Ra");
+    client.subscribe(topic);
+});
 
-                // Cập nhật Nhiệt độ
-                if (tempConfig && values[tempConfig.id] !== undefined) {
-                    document.getElementById('tempValue').innerText = Number(values[tempConfig.id].value).toFixed(1);
-                }
-                
-                // Cập nhật Độ ẩm
-                if (humConfig && values[humConfig.id] !== undefined) {
-                    document.getElementById('humValue').innerText = Number(values[humConfig.id].value).toFixed(1);
-                }
-            }
-        });
+// Nhận dữ liệu realtime
+client.on("message", (topic, message) => {
+    try {
+        const data = JSON.parse(message.toString());
 
-        // Tự động gửi tín hiệu Ready với đúng từ khóa 'message' thay vì 'type'
-        const readyInterval = setInterval(() => {
-            if (!eraConfig) {
-                window.parent.postMessage({ message: 'ready' }, '*');
-            } else {
-                clearInterval(readyInterval);
-            }
-        }, 1000);
-    </script>
+        console.log(data);
+
+        if (data.V1 !== undefined) {
+            document.getElementById("temp").innerHTML =
+                data.V1.toFixed(1) + " °C";
+        }
+
+        if (data.V2 !== undefined) {
+            document.getElementById("humi").innerHTML =
+                data.V2.toFixed(1) + " %";
+        }
+
+    } catch (e) {
+        console.log("Lỗi:", message.toString());
+    }
+});
+</script>
 
 </body>
 </html>
