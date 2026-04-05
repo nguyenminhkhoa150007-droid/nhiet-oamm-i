@@ -4,10 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.6/src/index.js"></script>
+<title>IoT Dashboard</title>
+
+<!-- ✅ Script chuẩn (fix 502) -->
+<script src="https://unpkg.com/@eohjsc/era-widget@latest/src/index.js"></script>
 
 <style>
 body {
+    margin: 0;
     font-family: Arial;
     background: transparent;
     display: flex;
@@ -28,10 +32,16 @@ body {
     border-radius: 15px;
     padding: 15px;
     text-align: center;
+    box-shadow: 0 5px 10px rgba(0,0,0,0.1);
 }
 
 .temp { border-top: 5px solid red; }
 .humi { border-top: 5px solid blue; }
+
+.title {
+    font-size: 14px;
+    color: #555;
+}
 
 .value {
     font-size: 28px;
@@ -45,43 +55,45 @@ body {
 
 <div class="container">
     <div class="card temp">
-        <div>NHIỆT ĐỘ</div>
+        <div class="title">NHIỆT ĐỘ</div>
         <div class="value" id="temp">-- °C</div>
     </div>
 
     <div class="card humi">
-        <div>ĐỘ ẨM</div>
+        <div class="title">ĐỘ ẨM</div>
         <div class="value" id="humi">-- %</div>
     </div>
 </div>
 
 <script>
-// 🔥 KHỞI TẠO ERA WIDGET
-eraWidget.init({
+// 🔥 Đợi load xong tránh lỗi 502
+window.onload = function () {
 
-    onConfiguration: (config) => {
-        console.log("Config:", config);
-    },
+    eraWidget.init({
 
-    onValues: (values) => {
-        console.log("Values:", values);
+        onConfiguration: function(config) {
+            console.log("Config:", config);
+        },
 
-        // 👉 LẤY GIÁ TRỊ
-        // ID 1 = V1
-        // ID 2 = V2
+        onValues: function(values) {
+            console.log("Values:", values);
 
-        if (values[1]) {
-            document.getElementById("temp").innerHTML =
-                values[1].value + " °C";
+            // 👉 ID 1 = V1
+            if (values[1] && values[1].value !== undefined) {
+                document.getElementById("temp").innerHTML =
+                    parseInt(values[1].value) + " °C";
+            }
+
+            // 👉 ID 2 = V2
+            if (values[2] && values[2].value !== undefined) {
+                document.getElementById("humi").innerHTML =
+                    parseInt(values[2].value) + " %";
+            }
         }
 
-        if (values[2]) {
-            document.getElementById("humi").innerHTML =
-                values[2].value + " %";
-        }
-    }
+    });
 
-});
+};
 </script>
 
 </body>
