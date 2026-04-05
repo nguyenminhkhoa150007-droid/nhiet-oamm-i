@@ -49,22 +49,19 @@ body {
 
 <script>
 // 🔥 LẤY DATA TỪ E-Ra (iframe truyền xuống)
-function getParam(name) {
-    const url = new URL(window.location.href);
-    return url.searchParams.get(name);
-}
+<script>
+// Lấy param từ URL
+const url = new URL(window.location.href);
 
-// E-Ra sẽ truyền dạng:
-/// ?V1=30&V2=60
+const temp = url.searchParams.get("temp");
+const humi = url.searchParams.get("humi");
 
-const temp = getParam("V1");
-const humi = getParam("V2");
-
-if (temp) {
+// Hiển thị
+if (temp !== null) {
     document.getElementById("temp").innerHTML = temp + " °C";
 }
 
-if (humi) {
+if (humi !== null) {
     document.getElementById("humi").innerHTML = humi + " %";
 }
 </script>
