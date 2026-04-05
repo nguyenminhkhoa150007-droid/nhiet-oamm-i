@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Theo dõi Nhiệt độ & Độ ẩm</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f4f7f6; 
+            display: flex; 
+            flex-direction: column;
+            justify-content: center; 
+            align-items: center; 
+            height: 100vh; 
+        }
+
+        .dashboard {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 200px;
+        }
+
+        .card-temp { border-top: 5px solid #ff4757; }
+        .card-hum { border-top: 5px solid #1e90ff; }
+
+        .title {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .value {
+            font-size: 40px;
+            font-weight: bold;
+        }
+
+        .val-temp { color: #ff4757; }
+        .val-hum { color: #1e90ff; }
+
+        .unit {
+            font-size: 20px;
+            color: #666;
+        }
+
+        @media (max-width: 500px) {
+            .dashboard { flex-direction: column; }
+            .card { width: 90%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="dashboard">
+        <!-- Thẻ Nhiệt độ -->
+        <div class="card card-temp">
+            <div class="title">Nhiệt độ</div>
+            <div class="value val-temp">
+                <span id="tempValue">--</span><span class="unit">°C</span>
+            </div>
+        </div>
+
+        <!-- Thẻ Độ ẩm -->
+        <div class="card card-hum">
+            <div class="title">Độ ẩm</div>
+            <div class="value val-hum">
+                <span id="humValue">--</span><span class="unit">%</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- LOGIC CHUẨN TỪ REPO GITHUB EOH-JSC/ERA-WIDGET-DASHBOARD -->
+    <script>
+        let eraConfig = null;
+
+        // Bắt sự kiện trực tiếp từ iFrame
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+            if (!data || typeof data !== 'object') return;
+
+            // 1. Nhận cấu hình (Configuration)
+            if (data.type === 'configuration') {
+                eraConfig = data.data;
+                console.log("Cấu hình từ E-Ra:", eraConfig);
+            }
+
+            // 2. Nhận dữ liệu thời gian thực (Values)
+            if (data.type === 'values' && eraConfig && eraConfig.realtime_configs) {
+                const values = data.data;
+
+                // Cấu hình trên web E-Ra: Dòng 1 (Nhiệt độ) -> Vị trí 0
+                const tempConfig = eraConfig.realtime_configs[0];
+                // Cấu hình trên web E-Ra: Dòng 2 (Độ ẩm) -> Vị trí 1
+                const humConfig = eraConfig.realtime_configs[1];
+
+                // Cập nhật Nhiệt độ
+                if (tempConfig && values[tempConfig.id] !== undefined) {
+                    document.getElementById('tempValue').innerText = Number(values[tempConfig.id].value).toFixed(1);
+                }
+                
+                // Cập nhật Độ ẩm
+                if (humConfig && values[humConfig.id] !== undefined) {
+                    document.getElementById('humValue').innerText = Number(values[humConfig.id].value).toFixed(1);
+                }
+            }
+        });
+
+        // Tự động gửi tín hiệu Ready cho đến khi lấy được cấu hình
+        const readyInterval = setInterval(() => {
+            if (!eraConfig) {
+                window.parent.postMessage({ type: 'ready' }, '*');
+            } else {
+                clearInterval(readyInterval);
+            }
+        }, 1000);
+    </script>
+
+</body>
+</html>
