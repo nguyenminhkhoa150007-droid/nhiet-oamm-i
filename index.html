@@ -3,7 +3,6 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>IoT Dashboard</title>
 
 <style>
 body {
@@ -14,12 +13,10 @@ body {
     align-items: center;
     height: 100vh;
 }
-
 .container {
     display: flex;
     gap: 20px;
 }
-
 .card {
     width: 200px;
     height: 130px;
@@ -28,7 +25,6 @@ body {
     padding: 15px;
     text-align: center;
 }
-
 .temp { border-top: 5px solid red; }
 .humi { border-top: 5px solid blue; }
 
@@ -52,38 +48,25 @@ body {
 </div>
 
 <script>
-// 🔥 TOKEN của bạn
-const TOKEN = "539c1dc1-70ed-43fc-b028-37e6af097ac7";
-
-// API E-Ra
-const API = `https://api.eoh.io/v1/device/latest?token=${TOKEN}`;
-
-// Lấy dữ liệu mỗi 3 giây
-async function getData() {
-    try {
-        const res = await fetch(API);
-        const data = await res.json();
-
-        console.log(data);
-
-        if (data.V1 !== undefined) {
-            document.getElementById("temp").innerHTML =
-                data.V1 + " °C";
-        }
-
-        if (data.V2 !== undefined) {
-            document.getElementById("humi").innerHTML =
-                data.V2 + " %";
-        }
-
-    } catch (e) {
-        console.log("Lỗi API:", e);
-    }
+// 🔥 LẤY DATA TỪ E-Ra (iframe truyền xuống)
+function getParam(name) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
 }
 
-// chạy liên tục
-setInterval(getData, 3000);
-getData();
+// E-Ra sẽ truyền dạng:
+/// ?V1=30&V2=60
+
+const temp = getParam("V1");
+const humi = getParam("V2");
+
+if (temp) {
+    document.getElementById("temp").innerHTML = temp + " °C";
+}
+
+if (humi) {
+    document.getElementById("humi").innerHTML = humi + " %";
+}
 </script>
 
 </body>
