@@ -28,7 +28,6 @@ body {
 .temp { border-top: 5px solid red; }
 .humi { border-top: 5px solid blue; }
 
-.title { font-size: 14px; }
 .value { font-size: 28px; margin-top: 20px; }
 </style>
 </head>
@@ -37,33 +36,38 @@ body {
 
 <div class="container">
     <div class="card temp">
-        <div class="title">NHIỆT ĐỘ</div>
+        <div>NHIỆT ĐỘ</div>
         <div class="value" id="temp">-- °C</div>
     </div>
 
     <div class="card humi">
-        <div class="title">ĐỘ ẨM</div>
+        <div>ĐỘ ẨM</div>
         <div class="value" id="humi">-- %</div>
     </div>
 </div>
 
 <script>
-// 🔥 LẤY DATA TỪ E-Ra (iframe truyền xuống)
-<script>
-// Lấy param từ URL
-const url = new URL(window.location.href);
+// 🔥 NHẬN DATA TỪ E-Ra iframe
+window.addEventListener("message", (event) => {
+    try {
+        const data = event.data;
 
-const temp = url.searchParams.get("temp");
-const humi = url.searchParams.get("humi");
+        console.log("DATA:", data);
 
-// Hiển thị
-if (temp !== null) {
-    document.getElementById("temp").innerHTML = temp + " °C";
-}
+        if (data.V1 !== undefined) {
+            document.getElementById("temp").innerHTML =
+                data.V1 + " °C";
+        }
 
-if (humi !== null) {
-    document.getElementById("humi").innerHTML = humi + " %";
-}
+        if (data.V2 !== undefined) {
+            document.getElementById("humi").innerHTML =
+                data.V2 + " %";
+        }
+
+    } catch (e) {
+        console.log("Lỗi:", e);
+    }
+});
 </script>
 
 </body>
