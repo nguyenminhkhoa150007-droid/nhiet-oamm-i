@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="https://unpkg.com/@eohjsc/era-widget@latest/src/index.js"></script>
+<script src="https://www.unpkg.com/@eohjsc/era-widget@1.1.3/src/index.js"></script>
 
 <style>
 body {
@@ -24,15 +24,15 @@ body {
 
 .card {
     width: 200px;
-    height: 130px;
+    height: 140px;
     background: #f5f5f5;
     border-radius: 15px;
     padding: 15px;
     text-align: center;
 }
 
-.temp { border-top: 5px solid red; }
-.humi { border-top: 5px solid blue; }
+#card-temp { border-top: 5px solid red; }
+#card-humi { border-top: 5px solid blue; }
 
 .value {
     font-size: 28px;
@@ -45,43 +45,59 @@ body {
 <body>
 
 <div class="container">
-    <div class="card temp">
+
+    <div class="card" id="card-temp">
         <div>NHIỆT ĐỘ</div>
-        <div class="value" id="temp">-- °C</div>
+        <div class="value" id="nhietDo">-- °C</div>
     </div>
 
-    <div class="card humi">
+    <div class="card" id="card-humi">
         <div>ĐỘ ẨM</div>
-        <div class="value" id="humi">-- %</div>
+        <div class="value" id="doAm">-- %</div>
     </div>
+
 </div>
 
 <script>
-window.onload = function () {
+//  LẤY ELEMENT
+const temp = document.getElementById('nhietDo');
+const humi = document.getElementById('doAm');
 
-    eraWidget.init({
+//  BIẾN LƯU CONFIG
+let configTemp = null;
+let configHumi = null;
 
-        onValues: function(values) {
-            console.log("Values:", values);
+//  KHỞI TẠO
+const eraWidget = new EraWidget();
 
-            // 🔥 LẤY KEY ĐỘNG
-            const keys = Object.keys(values);
+eraWidget.init({
+    needRealtimeConfigs: true,
 
-            if (keys.length >= 2) {
-                const tempValue = values[keys[0]].value;
-                const humiValue = values[keys[1]].value;
+    onConfiguration: (configuration) => {
+        console.log("Config:", configuration);
 
-                document.getElementById("temp").innerHTML =
-                    parseInt(tempValue) + " °C";
+        //  Map theo thứ tự bạn setup trong E-Ra
+        configTemp = configuration.realtime_configs[0];
+        configHumi = configuration.realtime_configs[1];
+    },
 
-                document.getElementById("humi").innerHTML =
-                    parseInt(humiValue) + " %";
-            }
+    onValues: (values) => {
+        console.log("Values:", values);
+
+        //  Check tránh lỗi undefined
+        if (configTemp && values[configTemp.id]) {
+            const valueTemp = values[configTemp.id].value;
+
+            temp.innerHTML = parseInt(valueTemp) + ' °C';
         }
 
-    });
+        if (configHumi && values[configHumi.id]) {
+            const valueHumi = values[configHumi.id].value;
 
-};
+            humi.innerHTML = parseInt(valueHumi) + ' %';
+        }
+    }
+});
 </script>
 
 </body>
